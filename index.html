@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ultimate Hyper-Realistic 3D Switch</title>
+    <style>
+        :root {
+            --bg-color: #08090c;
+            --led-on: #00ffcc;
+            --led-glow: rgba(0, 255, 204, 0.4);
+            --panel-grad: linear-gradient(135deg, #1a1c23 0%, #0f1015 100%);
+            --chrome-light: linear-gradient(145deg, #ffffff 0%, #a8b2c1 40%, #505967 70%, #20252d 100%);
+            --brushed-alum: linear-gradient(90deg, #3a3f4d 0%, #6b7487 25%, #4e5565 50%, #7d899f 75%, #3a3f4d 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 50% 30%, #161923 0%, #08090c 70%),
+                radial-gradient(circle at 50% 50%, rgba(0, 255, 204, 0.03) 0%, transparent 50%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            perspective: 1200px;
+        }
+
+        /* Cinematic Studio Background Lighting */
+        .studio-light {
+            position: absolute;
+            width: 150vw;
+            height: 150vh;
+            pointer-events: none;
+            background: radial-gradient(ellipse at 50% 40%, rgba(255,255,255,0.03) 0%, transparent 60%);
+            z-index: 0;
+        }
+
+        .ambient-glow {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: var(--led-glow);
+            filter: blur(120px);
+            opacity: 0;
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+            z-index: 1;
+            mix-blend-mode: screen;
+        }
+
+        /* Container & Stage */
+        .scene-container {
+            position: relative;
+            width: 420px;
+            height: 260px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+            transform-style: preserve-3d;
+        }
+
+        /* Macro Premium Housing Panel */
+        .switch-panel {
+            position: relative;
+            width: 340px;
+            height: 180px;
+            background: var(--panel-grad);
+            border-radius: 48px;
+            padding: 12px;
+            box-shadow: 
+                inset 0 2px 3px rgba(255,255,255,0.07),
+                inset 0 -3px 5px rgba(0,0,0,0.8),
+                0 10px 30px rgba(0,0,0,0.7),
+                0 30px 60px rgba(0,0,0,0.5),
+                0 0 1px 1px rgba(255,255,255,0.05);
+            transform-style: preserve-3d;
+            transform: rotateX(15deg) rotateY(-10deg);
+            transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        body:hover .switch-panel {
+            transform: rotateX(12deg) rotateY(-6deg) translateZ(10px);
+        }
+
+        /* Core Bezel Track - Frosted Acrylic + Matte Ceramic Interior */
+        .track-outer {
+            width: 100%;
+            height: 100%;
+            background: #0b0c10;
+            border-radius: 38px;
+            box-shadow: 
+                inset 0 4px 12px rgba(0,0,0,0.9),
+                inset 0 -2px 4px rgba(255,255,255,0.05),
+                0 1px 2px rgba(255,255,255,0.1);
+            padding: 6px;
+            overflow: hidden;
+            position: relative;
+            transform-style: preserve-3d;
+        }
+
+        .track-inner {
+            width: 100%;
+            height: 100%;
+            background: #111318;
+            border-radius: 32px;
+            position: relative;
+            box-shadow: inset 0 10px 20px rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+        }
+
+        /* Sub-surface Mechanical Rail Indicator Lines */
+        .mechanical-rail {
+            position: absolute;
+            left: 40px;
+            right: 40px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 2px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* Futuristic Quantum Energy Conduit Loops */
+        .conduit-channel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 32px;
+            pointer-events: none;
+            border: 2px solid transparent;
+            mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+            -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: destination-out;
+            mask-composite: exclude;
+            background: linear-gradient(90deg, transparent 30%, rgba(0, 255, 204, 0.3) 50%, transparent 70%) border-box;
+            background-size: 200% 100%;
+            background-position: 100% 0;
+            opacity: 0.1;
+            transition: opacity 0.6s ease, background-position 0s;
+        }
+
+        /* 3D Actuator Knob - The Hero Object */
+        .knob-wrapper {
+            position: absolute;
+            width: 130px;
+            height: 130px;
+            left: 12px;
+            cursor: grab;
+            transform-style: preserve-3d;
+            transform: translateZ(25px);
+            will-change: transform;
+        }
+
+        .knob-wrapper:active {
+            cursor: grabbing;
+        }
+
+        /* Multi-layered Knob Sub-components */
+        .knob-body {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: var(--brushed-alum);
+            position: relative;
+            transform-style: preserve-3d;
+            box-shadow: 
+                0 4px 10px rgba(0,0,0,0.5),
+                0 15px 35px rgba(0,0,0,0.6),
+                inset 0 2px 3px rgba(255,255,255,0.4),
+                inset 0 -3px 6px rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Highly Polished Outer Chrome Rim Ring */
+        .chrome-ring {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
+            border-radius: 50%;
+            background: var(--chrome-light);
+            box-shadow: 
+                0 2px 5px rgba(0,0,0,0.5),
+                inset 0 2px 2px rgba(255,255,255,0.6),
+                inset 0 -2px 4px rgba(0,0,0,0.8);
+            transform: translateZ(5px);
+        }
+
+        /* Ergonomic Tactile Soft Rubber Grip Core */
+        .rubber-grip {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            bottom: 14px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #2a2e39 0%, #13151a 70%);
+            box-shadow: 
+                inset 0 3px 8px rgba(0,0,0,0.9),
+                inset 0 -2px 4px rgba(255,255,255,0.05),
+                0 1px 1px rgba(255,255,255,0.15);
+            transform: translateZ(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Knurled Pattern Detail lines inside rubber core */
+        .rubber-grip::before {
+            content: '';
+            position: absolute;
+            width: 140%;
+            height: 140%;
+            background-image: 
+                linear-gradient(45deg, rgba(0,0,0,0.15) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.15) 75%),
+                linear-gradient(45deg, rgba(0,0,0,0.15) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.15) 75%);
+            background-size: 6px 6px;
+            background-position: 0 0, 3px 3px;
+            opacity: 0.7;
+        }
+
+        /* Crystal Acrylic Central Lens capsule */
+        .crystal-lens {
+            position: absolute;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.02) 100%);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 
+                0 4px 10px rgba(0,0,0,0.4),
+                inset 0 2px 4px rgba(255,255,255,0.3),
+                inset 0 -2px 4px rgba(0,0,0,0.6);
+            transform: translateZ(12px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Deep Internal Monolithic LED Emissive Node */
+        .led-node {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #252932;
+            box-shadow: inset 0 2px 3px rgba(0,0,0,0.8);
+            position: relative;
+            transition: background 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .led-node::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 50%;
+            background: var(--led-on);
+            opacity: 0;
+            box-shadow: 0 0 15px 5px var(--led-on);
+            transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Dynamic Contact Shadow casting onto track backplane */
+        .contact-shadow {
+            position: absolute;
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.85);
+            filter: blur(8px);
+            mix-blend-mode: multiply;
+            pointer-events: none;
+            transform: translateZ(-10px) scale(0.95);
+            left: 12px;
+            will-change: transform;
+        }
+
+        /* State Modifiers managed by Physical Engine */
+        .state-on .ambient-glow {
+            opacity: 1;
+        }
+
+        .state-on .led-node::after {
+            opacity: 1;
+        }
+
+        .state-on .conduit-channel {
+            opacity: 1;
+            background-position: 0 0;
+            transition: opacity 0.4s ease, background-position 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Precision Mechanical Labels */
+        .panel-label {
+            position: absolute;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.15);
+            top: 50%;
+            transform: translateY(-50%);
+            text-shadow: 0 -1px 0 rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.05);
+            transition: color 0.4s ease, text-shadow 0.4s ease;
+        }
+
+        .label-off { left: -45px; }
+        .label-on { right: -42px; }
+
+        .state-on .label-on {
+            color: var(--led-on);
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.4), 0 1px 0 rgba(255,255,255,0.05);
+        }
+        .state-off .label-off {
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* Status UI response */
+        .system-status {
+            position: absolute;
+            bottom: -50px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: rgba(255,255,255,0.2);
+            transition: color 0.4s ease;
+        }
+        .state-on .system-status {
+            color: rgba(0, 255, 204, 0.7);
+        }
+    </style>
+</head>
+<body class="state-off">
+
+    <div class="studio-light"></div>
+    <div class="ambient-glow" id="ambientGlow"></div>
+
+    <div class="scene-container" id="sceneContainer">
+        
+        <div class="switch-panel" id="switchPanel">
+            <div class="panel-label label-off">01 / OFF</div>
+            <div class="panel-label label-on">ON / 02</div>
+            
+            <div class="track-outer">
+                <div class="track-inner">
+                    <div class="mechanical-rail"></div>
+                    <div class="conduit-channel" id="conduit"></div>
+                    
+                    <div class="contact-shadow" id="shadow"></div>
+                    <div class="knob-wrapper" id="knob">
+                        <div class="knob-body">
+                            <div class="chrome-ring"></div>
+                            <div class="rubber-grip"></div>
+                            <div class="crystal-lens">
+                                <div class="led-node"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+
+        <div class="system-status" id="sysStatus">System State: Idle</div>
+    </div>
+
+    <script>
+        const knob = document.getElementById('knob');
+        const shadow = document.getElementById('shadow');
+        const panel = document.getElementById('switchPanel');
+        const container = document.getElementById('sceneContainer');
+        const sysStatus = document.getElementById('sysStatus');
+        const body = document.body;
+
+        // Constants for Physics Engine & Layout Geometry
+        const MIN_X = 12; // Off Position (Left)
+        const MAX_X = 198; // On Position (Right)
+        const SNAP_THRESHOLD = (MIN_X + MAX_X) / 2;
+        
+        // Physics Simulation Variables
+        let currentX = MIN_X;
+        let targetX = MIN_X;
+        let velocity = 0;
+        let isDragging = false;
+        let startDragX = 0;
+        let startKnobX = 0;
+        let isStateOn = false;
+
+        // Spring & Mass Constants (Handcrafted for heavy premium mechanical behavior)
+        const MASS = 1.4;
+        const SPRING_STIFFNESS = 180;
+        const DAMPING = 16;
+        const MAGNETIC_PULL = 0.25; 
+
+        // Sound FX Generators using Web Audio API (Fully Procedural Mechanical Micro-clicks)
+        function playClickSound(type) {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                if (type === 'engage') {
+                    // Deep, heavy metallic engaging snap
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(140, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(45, ctx.currentTime + 0.08);
+                    gain.gain.setValueAtTime(0.4, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.08);
+                } else if (type === 'release') {
+                    // Crisp, highly tensioned sub-spring pop
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(220, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.04);
+                    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.04);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.04);
+                }
+            } catch (e) { /* Audio context muted or blocked safely ignored */ }
+        }
+
+        // Haptic Feedback API shim
+        function triggerHaptic() {
+            if (navigator.vibrate) {
+                navigator.vibrate(12);
+            }
+        }
+
+        // Interaction Event Listeners
+        knob.addEventListener('mousedown', startDrag);
+        window.addEventListener('mousemove', drag);
+        window.addEventListener('mouseup', endDrag);
+
+        knob.addEventListener('touchstart', (e) => startDrag(e.touches[0]), { passive: true });
+        window.addEventListener('touchmove', (e) => drag(e.touches[0]), { passive: false });
+        window.addEventListener('touchend', endDrag);
+
+        // Click on panel to pop toggle instantly with physics
+        panel.addEventListener('click', (e) => {
+            if (isDragging) return;
+            if (e.target === knob || knob.contains(e.target)) return;
+            
+            targetX = isStateOn ? MIN_X : MAX_X;
+            playClickSound('release');
+            sysStatus.innerText = "System State: Processing";
+        });
+
+        // Mouse Move Orientation Paradigm (3D Lighting & Parallax depth mapping)
+        window.addEventListener('mousemove', (e) => {
+            if (isDragging) return;
+            const cx = window.innerWidth / 2;
+            const cy = window.innerHeight / 2;
+            const dx = (e.clientX - cx) / cx;
+            const dy = (e.clientY - cy) / cy;
+            
+            // Subtle dynamic tilt rotation mapping
+            panel.style.transform = `rotateX(${15 - (dy * 10)}deg) rotateY(${-10 + (dx * 12)}deg) translateZ(0px)`;
+        });
+
+        function startDrag(e) {
+            isDragging = true;
+            startDragX = e.clientX;
+            startKnobX = currentX;
+            sysStatus.innerText = "System State: Holding";
+            playClickSound('release');
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            
+            let deltaX = e.clientX - startDragX;
+            let prospectiveX = startKnobX + deltaX;
+            
+            // Introduce tactile rubber-band resistance at track boundaries
+            if (prospectiveX < MIN_X) {
+                prospectiveX = MIN_X + (prospectiveX - MIN_X) * 0.2;
+            } else if (prospectiveX > MAX_X) {
+                prospectiveX = MAX_X + (prospectiveX - MAX_X) * 0.2;
+            }
+            
+            targetX = prospectiveX;
+            currentX = prospectiveX; // Directly drive positioning during grab state
+        }
+
+        function endDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            // Analytical Snap Lock Choice
+            if (currentX > SNAP_THRESHOLD) {
+                targetX = MAX_X;
+            } else {
+                targetX = MIN_X;
+            }
+        }
+
+        // Custom High-Precision Real-time Physics Loop running at 60fps/120fps
+        function updatePhysics() {
+            if (!isDragging) {
+                // Apply simulated non-linear magnetic attraction forces near lock gates
+                let distanceToTarget = targetX - currentX;
+                
+                // Spring structural equation calculations: F = -kx - cv
+                let springForce = distanceToTarget * SPRING_STIFFNESS;
+                let dampingForce = velocity * DAMPING;
+                let acceleration = (springForce - dampingForce) / MASS;
+                
+                velocity += acceleration * 0.016; // Based on 60hz step timing
+                currentX += velocity * 0.016;
+
+                // Threshold gate to hard-lock positioning variables and fire events
+                if (Math.abs(targetX - currentX) < 0.1 && Math.abs(velocity) < 0.5) {
+                    currentX = targetX;
+                    velocity = 0;
+                    
+                    // State change verification and ignition execution
+                    if (currentX === MAX_X && !isStateOn) {
+                        isStateOn = true;
+                        body.className = "state-on";
+                        sysStatus.innerText = "System State: Online";
+                        playClickSound('engage');
+                        triggerHaptic();
+                    } else if (currentX === MIN_X && isStateOn) {
+                        isStateOn = false;
+                        body.className = "state-off";
+                        sysStatus.innerText = "System State: Offline";
+                        playClickSound('engage');
+                        triggerHaptic();
+                    }
+                }
+            }
+
+            // Render absolute computed transforms to browser painter matrix
+            knob.style.transform = `translateX(${currentX}px) translateZ(25px)`;
+            shadow.style.transform = `translateX(${currentX * 0.98}px) translateZ(-5px) scale(0.95)`;
+            
+            // Dynamic Interactive 3D Internal Reflection mapping during transition
+            const midPointPercentage = (currentX - MIN_X) / (MAX_X - MIN_X);
+            panel.style.boxShadow = `
+                inset 0 2px 3px rgba(255,255,255,0.07),
+                inset 0 -3px 5px rgba(0,0,0,0.8),
+                0 10px 30px rgba(0,0,0,0.7),
+                0 30px 60px rgba(0,0,0,0.5),
+                0 0 40px ${midPointPercentage * 15}px rgba(0, 255, 204, ${midPointPercentage * 0.15})`;
+
+            requestAnimationFrame(updatePhysics);
+        }
+
+        // Initialize Engine
+        requestAnimationFrame(updatePhysics);
+    </script>
+</body>
+</html>
